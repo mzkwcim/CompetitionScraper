@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using System.Text;
 internal class Program
 {
 
@@ -10,31 +11,71 @@ internal class Program
         
         string url = "";
         Dictionary<string, string> swimmers = new Dictionary<string, string>();
-        for (int i = 0; i < 2; i++)
+        for(int j = 0; j < 2; j++)
         {
-            if (i == 1)
+            if (j == 1)
             {
-                links =  Loader(link.Replace("course=LCM", "course=SCM")).DocumentNode.SelectNodes("//td[@class='swimstyle']//a");
+                links = Loader(link.Replace("gender=1", "gender=2")).DocumentNode.SelectNodes("//td[@class='swimstyle']//a");
             }
-            foreach (var linky in links)
+            for (int i = 0; i < 2; i++)
             {
-                url = ("https://www.swimrankings.net/index.php" + linky.GetAttributeValue("href", "")).Replace("amp;", "");
-                Console.WriteLine(url);
-                var athletes = Loader(url).DocumentNode.SelectNodes("//td[@class='fullname']//a");
-                foreach (var athlete in athletes)
+                if (i == 1)
                 {
-                    Console.WriteLine(athlete.InnerText);
-                    if (!swimmers.ContainsKey(athlete.InnerText))
+                    links = Loader(link.Replace("course=LCM", "course=SCM")).DocumentNode.SelectNodes("//td[@class='swimstyle']//a");
+                }
+                foreach (var linky in links)
+                {
+                    url = ("https://www.swimrankings.net/index.php" + linky.GetAttributeValue("href", "")).Replace("amp;", "");
+                    Console.WriteLine(url);
+                    var athletes = Loader(url).DocumentNode.SelectNodes("//td[@class='fullname']//a");
+                    foreach (var athlete in athletes)
                     {
-                        swimmers.Add(athlete.InnerText, ("https://www.swimrankings.net/index.php" + athlete.GetAttributeValue("href", "")).Replace("amp;", ""));
+                        Console.WriteLine(athlete.InnerText);
+                        if (!swimmers.ContainsKey(athlete.InnerText))
+                        {
+                            swimmers.Add(athlete.InnerText, ("https://www.swimrankings.net/index.php" + athlete.GetAttributeValue("href", "")).Replace("amp;", ""));
+                        }
                     }
                 }
             }
         }
-        
+
+        int counter = 0;
         foreach (var pair in swimmers)
         {
-            Console.WriteLine($"Name: {pair.Key}, Favorite sport: {pair.Value}");
+            Console.WriteLine($"{pair.Key}");
+            var distances = Loader(pair.Value).DocumentNode.SelectNodes("//td[@class='event']//a");
+            foreach (var distance in distances)
+            {
+                Console.WriteLine(distance.GetAttributeValue("href", ""));
+                var events = Loader("https://www.swimrankings.net/index.php" + distance.GetAttributeValue("href","").Replace("amp;", "")).DocumentNode.SelectNodes("//a[@class='time']");
+                foreach (var ev in events)
+                {
+                    Console.WriteLine("https://www.swimrankings.net/index.php" + ev.GetAttributeValue("href", "").Replace("amp;", ""));
+                    var singlEvent = Loader(("https://www.swimrankings.net/index.php" + ev.GetAttributeValue("href", "")).Replace("amp;","")).DocumentNode.SelectNodes("//td[@class='h4']//a")[1];
+                    var placeholder = Loader(("https://www.swimrankings.net/index.php" + ev.GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td")[13].InnerText;
+                    var place = Loader(("https://www.swimrankings.net/index.php" + ev.GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td")[15].InnerText;
+                    Console.WriteLine(singlEvent.InnerText);
+                    Console.ReadKey();
+                    StringBuilder result = new StringBuilder();
+
+                    // Iterujemy przez każdy znak w ciągu wejściowym
+                    foreach (char c in place)
+                    {
+                        // Sprawdzamy, czy znak jest cyfrą (liczbą)
+                        if (char.IsDigit(c))
+                        {
+                            // Jeśli tak, dodajemy go do wyniku
+                            result.Append(c);
+                        }
+                    }
+                    Console.WriteLine($"{pair.Key} {result} miejsce na {placeholder} na {singlEvent.InnerText}");
+                    counter++;
+                }
+                counter = 0;
+            }
+
+            
         }
     }
     public static HtmlAgilityPack.HtmlDocument Loader(string url)
@@ -53,5 +94,18 @@ internal class Program
             words[i] = char.ToUpper(words[i][0]) + words[i][1..].ToLower();
         }
         return string.Join(" ", words).Replace(",", "");
+    }
+    public static string TranslateStroke(string key)
+    {
+
+        switch (key)
+        {
+            case "Freestyle": return " Dowolnym";
+            case "Backstroke": return " Grzbietowym";
+            case "Breaststroke": return " Klasycznym";
+            case "Butterfly": return " Motylkowym";
+            case "Medley": return " Zmiennym";
+            default: return "";
+        }
     }
 }
