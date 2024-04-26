@@ -13,6 +13,7 @@ namespace CompetitionScraper
             DictionaryManager dictionaryManager = new DictionaryManager();
             Dictionary<string, string> swimmers = dictionaryManager.GetUrls();
 
+            Dictionary<string, int> maxValue = new Dictionary<string, int>();
 
             List<string> allResults = new List<string>();
             foreach (var pair in swimmers)
@@ -34,22 +35,49 @@ namespace CompetitionScraper
                                 StringBuilder result = new StringBuilder();
                                 foreach (char c in place)
                                 {
-                                    if (char.IsDigit(c))
-                                    {
-                                        result.Append(c);
-                                    }
+                                    result.Append(char.IsDigit(c) ? c : "");
                                 }
                                 string line = $"{DataFormatingSystem.ToTitleString(pair.Key)} {result} miejsce na {DataFormatingSystem.TranslateStroke(placeholder)} {singlEvent.InnerText} dnia {DataFormatingSystem.DateTranslation(dates[e].InnerText)}";
                                 if (Convert.ToInt32(result.ToString()) != 450 && !allResults.Contains(line))
                                 {
-                                    allResults.Add(line);
+                                    allResults.Add($"{result} miejsce na {DataFormatingSystem.TranslateStroke(placeholder)}");
+                                    if (!maxValue.ContainsKey(singlEvent.InnerText))
+                                    {
+                                        maxValue.Add(singlEvent.InnerText, 1);
+                                    }
+                                    else
+                                    {
+                                        maxValue[singlEvent.InnerText]++;
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(pair.Key), allResults,maxValue.Values.Max());
+                Console.WriteLine(cs.Text);
+                Console.WriteLine(cs.Number);
+                foreach(var s in cs.StringList)
+                {
+                    Console.WriteLine(s);
+                }
+                Console.ReadKey();
             }
             return allResults;
         }
     }
+    public class CustomStructure
+    {
+        public string Text { get; set; }
+        public List<string> StringList { get; set; }
+        public int Number { get; set; }
+
+        public CustomStructure(string text, List<string> stringList, int number)
+        {
+            Text = text;
+            StringList = stringList;
+            Number = number;
+        }
+    }
+
 }

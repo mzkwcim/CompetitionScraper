@@ -8,10 +8,7 @@ namespace CompetitionScraper
 {
     internal class DictionaryManager
     {
-        private List<string> ourSwimmers = ["Bartoszewska Marta", "Berg Maria", "Dopierala Piotr", "Drost Stanislaw", "Heymann Patryk", "Jaglowski Dawid", "Krzesniak Jakub",
-            "Lechowicz Mikolaj", "Madelska Natalia", "Makowska Blanka", "Moros Bruno", "Olejniczak Mateusz", "Polody Estera", "Siepka Zofia",
-            "Smykaj Antonina", "Szmidchen Alan", "Zakens Gabriela", "Horowska Zuzanna", "Kubiak Zuzanna", "Kurek Antoni", "Mroczek Dominik",
-            "Nogalska Iga", "Sewilo Martyna", "Sumislawska Aleksandra", "Malicka Maja" ];
+        private List<string> ourSwimmers = ["Bartoszewska Marta"];
         internal Dictionary<string,string> GetUrls()
         {
             string link = "https://www.swimrankings.net/index.php?page=rankingDetail&clubId=65773&gender=1&season=2024&course=LCM&stroke=0&agegroup=13013";
