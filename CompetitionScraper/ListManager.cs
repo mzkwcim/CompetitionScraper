@@ -8,7 +8,7 @@ namespace CompetitionScraper
 {
     internal class ListManager
     {
-        internal List<string> GetList()
+        internal List<CustomStructure> GetList()
         {
             DictionaryManager dictionaryManager = new DictionaryManager();
             Dictionary<string, string> swimmers = dictionaryManager.GetUrls();
@@ -83,10 +83,9 @@ namespace CompetitionScraper
                         Console.WriteLine(v);
                     }
                 }
-                Console.ReadKey();
                 test.Add(cs);
             }
-            return allResults;
+            return test;
         }
     }
     public class CustomStructure

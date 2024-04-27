@@ -52,10 +52,24 @@ namespace CompetitionScraper
         public static string DateTranslation(string englishDate)
         {
             string[] partsOfEnglishDate = englishDate.Split("&nbsp;");
-            return (partsOfEnglishDate.Length == 5) ? $"{partsOfEnglishDate[..3]} {GetMonthTranslation(partsOfEnglishDate[3])} {partsOfEnglishDate[4]}" : 
+            return (partsOfEnglishDate.Length == 5) ? $"{String.Join(" ", partsOfEnglishDate[..3])} {GetMonthTranslation(partsOfEnglishDate[3])} {partsOfEnglishDate[4]}" : 
                 (partsOfEnglishDate.Length == 4) ?
                 $"{partsOfEnglishDate[1]} {GetMonthTranslation(partsOfEnglishDate[2])} {partsOfEnglishDate[3]}" :
                 $"{partsOfEnglishDate[0]} {GetMonthTranslation(partsOfEnglishDate[1])} {partsOfEnglishDate[2]}";
+        }
+        public static string NumberToExcelColumn(int columnNumber)
+        {
+            string columnName = "";
+
+            while (columnNumber > 0)
+            {
+                int remainder = (columnNumber - 1) % 26;
+                char letter = (char)('A' + remainder);
+                columnName = letter + columnName;
+                columnNumber = (columnNumber - 1) / 26;
+            }
+
+            return columnName;
         }
     }
 }
