@@ -12,8 +12,10 @@ namespace CompetitionScraper
         {
             DictionaryManager dictionaryManager = new DictionaryManager();
             Dictionary<string, string> swimmers = dictionaryManager.GetUrls();
-
+            List<CustomStructure> test = new List<CustomStructure>();
             Dictionary<string, int> maxValue = new Dictionary<string, int>();
+            Dictionary<string, List<string>> helper = new Dictionary<string, List<string>>();
+            Dictionary<string, string> hugeDates = new Dictionary<string, string>();
 
             List<string> allResults = new List<string>();
             foreach (var pair in swimmers)
@@ -31,6 +33,7 @@ namespace CompetitionScraper
                             if (!placeholder.Contains("Lap"))
                             {
                                 var singlEvent = ScrapingSystem.Loader(("https://www.swimrankings.net/index.php" + events[e].GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td[@class='h4']//a")[1];
+                                var competitionDate = ScrapingSystem.Loader(("https://www.swimrankings.net/index.php" + singlEvent.GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td[@class='titleRight']")[1].InnerText;
                                 var place = ScrapingSystem.Loader(("https://www.swimrankings.net/index.php" + events[e].GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td")[15].InnerText;
                                 StringBuilder result = new StringBuilder();
                                 foreach (char c in place)
@@ -40,7 +43,20 @@ namespace CompetitionScraper
                                 string line = $"{DataFormatingSystem.ToTitleString(pair.Key)} {result} miejsce na {DataFormatingSystem.TranslateStroke(placeholder)} {singlEvent.InnerText} dnia {DataFormatingSystem.DateTranslation(dates[e].InnerText)}";
                                 if (Convert.ToInt32(result.ToString()) != 450 && !allResults.Contains(line))
                                 {
-                                    allResults.Add($"{result} miejsce na {DataFormatingSystem.TranslateStroke(placeholder)}");
+                                    if (!hugeDates.ContainsKey(singlEvent.InnerText))
+                                    {
+                                        hugeDates.Add(singlEvent.InnerText, DataFormatingSystem.DateTranslation(competitionDate));
+                                    }
+                                    if (helper.ContainsKey(singlEvent.InnerText))
+                                    {
+                                        helper[singlEvent.InnerText].Add($"{result} miejsce na {DataFormatingSystem.TranslateStroke(placeholder)}");
+                                    }
+                                    else
+                                    {
+                                        helper.Add(singlEvent.InnerText, new List<string> { $"{result} miejsce na {DataFormatingSystem.TranslateStroke(placeholder)}" });
+                                    }
+                                    allResults.Add(line);
+                                    Console.WriteLine(line);
                                     if (!maxValue.ContainsKey(singlEvent.InnerText))
                                     {
                                         maxValue.Add(singlEvent.InnerText, 1);
@@ -54,14 +70,21 @@ namespace CompetitionScraper
                         }
                     }
                 }
-                CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(pair.Key), allResults,maxValue.Values.Max());
+                //every line regarding CustomStructure is in testing stage
+                CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(pair.Key), helper,maxValue.Values.Max(), hugeDates);
                 Console.WriteLine(cs.Text);
                 Console.WriteLine(cs.Number);
-                foreach(var s in cs.StringList)
+                foreach(var (key, value) in cs.StringList)
                 {
-                    Console.WriteLine(s);
+                    Console.WriteLine(key);
+                    Console.WriteLine(hugeDates[key]);
+                    foreach (var v in value)
+                    {
+                        Console.WriteLine(v);
+                    }
                 }
                 Console.ReadKey();
+                test.Add(cs);
             }
             return allResults;
         }
@@ -69,14 +92,16 @@ namespace CompetitionScraper
     public class CustomStructure
     {
         public string Text { get; set; }
-        public List<string> StringList { get; set; }
+        public Dictionary<string, List<string>> StringList { get; set; }
         public int Number { get; set; }
+        public Dictionary<string, string> Date { get; set; }
 
-        public CustomStructure(string text, List<string> stringList, int number)
+        public CustomStructure(string text, Dictionary<string, List<string>> stringList, int number, Dictionary<string, string> date)
         {
             Text = text;
             StringList = stringList;
             Number = number;
+            Date = date;
         }
     }
 

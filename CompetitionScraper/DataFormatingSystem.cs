@@ -52,7 +52,10 @@ namespace CompetitionScraper
         public static string DateTranslation(string englishDate)
         {
             string[] partsOfEnglishDate = englishDate.Split("&nbsp;");
-            return (partsOfEnglishDate.Length == 4) ? $"{partsOfEnglishDate[1]} {GetMonthTranslation(partsOfEnglishDate[2])} {partsOfEnglishDate[3]}" : $"{partsOfEnglishDate[0]} {GetMonthTranslation(partsOfEnglishDate[1])} {partsOfEnglishDate[2]}";
+            return (partsOfEnglishDate.Length == 5) ? $"{partsOfEnglishDate[..3]} {GetMonthTranslation(partsOfEnglishDate[3])} {partsOfEnglishDate[4]}" : 
+                (partsOfEnglishDate.Length == 4) ?
+                $"{partsOfEnglishDate[1]} {GetMonthTranslation(partsOfEnglishDate[2])} {partsOfEnglishDate[3]}" :
+                $"{partsOfEnglishDate[0]} {GetMonthTranslation(partsOfEnglishDate[1])} {partsOfEnglishDate[2]}";
         }
     }
 }
