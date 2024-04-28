@@ -15,7 +15,7 @@ namespace CompetitionScraper
             List<CustomStructure> test = new List<CustomStructure>();
             Dictionary<string, int> maxValue = new Dictionary<string, int>();
             Dictionary<string, List<string>> helper = new Dictionary<string, List<string>>();
-            Dictionary<string, string> hugeDates = new Dictionary<string, string>();
+            Dictionary<string, Dictionary<string, string>> hugeDates = new Dictionary<string, Dictionary<string, string>>();
 
             List<string> allResults = new List<string>();
             foreach (var pair in swimmers)
@@ -25,6 +25,7 @@ namespace CompetitionScraper
                 {
                     var events = ScrapingSystem.Loader("https://www.swimrankings.net/index.php" + distance.GetAttributeValue("href", "").Replace("amp;", "")).DocumentNode.SelectNodes("//a[@class='time']");
                     var dates = ScrapingSystem.Loader("https://www.swimrankings.net/index.php" + distance.GetAttributeValue("href", "").Replace("amp;", "")).DocumentNode.SelectNodes("//td[@class='date']");
+                    var cities = ScrapingSystem.Loader("https://www.swimrankings.net/index.php" + distance.GetAttributeValue("href", "").Replace("amp;", "")).DocumentNode.SelectNodes("//td[@class='city']//a");
                     for (int e = 0; e < events.Count; e++)
                     {
                         if (Convert.ToInt32(dates[e].InnerText.Split("&nbsp;")[2]) == 2024)
@@ -36,6 +37,8 @@ namespace CompetitionScraper
                                 var competitionDate = ScrapingSystem.Loader(("https://www.swimrankings.net/index.php" + singlEvent.GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td[@class='titleRight']")[1].InnerText;
                                 var place = ScrapingSystem.Loader(("https://www.swimrankings.net/index.php" + events[e].GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td")[15].InnerText;
                                 StringBuilder result = new StringBuilder();
+                                Dictionary<string, string> properties = new Dictionary<string, string>();
+                                properties.Add(DataFormatingSystem.DateTranslation(competitionDate), cities[e].InnerText);
                                 foreach (char c in place)
                                 {
                                     result.Append(char.IsDigit(c) ? c : "");
@@ -45,7 +48,7 @@ namespace CompetitionScraper
                                 {
                                     if (!hugeDates.ContainsKey(singlEvent.InnerText))
                                     {
-                                        hugeDates.Add(singlEvent.InnerText, DataFormatingSystem.DateTranslation(competitionDate));
+                                        hugeDates.Add(singlEvent.InnerText, properties);
                                     }
                                     if (helper.ContainsKey(singlEvent.InnerText))
                                     {
@@ -72,17 +75,6 @@ namespace CompetitionScraper
                 }
                 //every line regarding CustomStructure is in testing stage
                 CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(pair.Key), helper,maxValue.Values.Max(), hugeDates);
-                Console.WriteLine(cs.Text);
-                Console.WriteLine(cs.Number);
-                foreach(var (key, value) in cs.StringList)
-                {
-                    Console.WriteLine(key);
-                    Console.WriteLine(hugeDates[key]);
-                    foreach (var v in value)
-                    {
-                        Console.WriteLine(v);
-                    }
-                }
                 test.Add(cs);
             }
             return test;
@@ -93,9 +85,9 @@ namespace CompetitionScraper
         public string Text { get; set; }
         public Dictionary<string, List<string>> StringList { get; set; }
         public int Number { get; set; }
-        public Dictionary<string, string> Date { get; set; }
+        public Dictionary<string, Dictionary<string, string>> Date { get; set; }
 
-        public CustomStructure(string text, Dictionary<string, List<string>> stringList, int number, Dictionary<string, string> date)
+        public CustomStructure(string text, Dictionary<string, List<string>> stringList, int number, Dictionary<string, Dictionary<string, string>> date)
         {
             Text = text;
             StringList = stringList;

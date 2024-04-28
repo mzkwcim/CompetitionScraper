@@ -71,5 +71,28 @@ namespace CompetitionScraper
 
             return columnName;
         }
+        string DodajLitere(string litera, int liczba)
+        {
+            // Konwertowanie litery na kod znaku
+            int pierwszaCzesc = (int)litera[0] - 'A' + 1;
+            int drugaCzesc = (int)litera[1] - 'A' + 1;
+
+            // Dodanie liczby do kodu znaku
+            drugaCzesc += liczba;
+
+            // Przesunięcie drugiej części, jeśli przekroczy 'Z'
+            if (drugaCzesc > 26)
+            {
+                pierwszaCzesc += (drugaCzesc - 1) / 26;
+                drugaCzesc = (drugaCzesc - 1) % 26 + 1;
+            }
+
+            // Konwersja na litery
+            string pierwszaLitera = ((char)('A' + (pierwszaCzesc - 1))).ToString();
+            string drugaLitera = ((char)('A' + (drugaCzesc - 1))).ToString();
+
+            // Zwrócenie wyniku
+            return pierwszaLitera + drugaLitera;
+        }
     }
 }
