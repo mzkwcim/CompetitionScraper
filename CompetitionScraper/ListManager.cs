@@ -20,6 +20,10 @@ namespace CompetitionScraper
             List<string> allResults = new List<string>();
             foreach (var pair in swimmers)
             {
+                var rawAge = ScrapingSystem.Loader(pair.Value).DocumentNode.SelectSingleNode("//div[@id='athleteinfo']/div[@id='name']").InnerText;
+                System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(rawAge, @"\((\d{4})");
+                Console.WriteLine(match.Groups[1].Value);
+                string category = Category(Convert.ToInt32(match.Groups[1].Value.Trim()));
                 var distances = ScrapingSystem.Loader(pair.Value).DocumentNode.SelectNodes("//td[@class='event']//a");
                 foreach (var distance in distances)
                 {
@@ -74,10 +78,47 @@ namespace CompetitionScraper
                     }
                 }
                 //every line regarding CustomStructure is in testing stage
-                CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(pair.Key), helper,maxValue.Values.Max(), hugeDates);
+                CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(pair.Key), helper,maxValue.Values.Max(), hugeDates, category);
                 test.Add(cs);
             }
             return test;
+        }
+
+        public static string Category(int birth)
+        {
+            int today = DateTime.Today.Year;
+            string category = "";
+            int age = today - birth;
+            if (age >= 0 && age <= 11)
+            {
+                category = "Dziecko";
+            }
+            else if (age >= 12 && age <= 13)
+            {
+                category = "Młodzik";
+            }
+            else if (age >= 14 && age <= 16)
+            {
+                category = "Junior Młodszy";
+            }
+            else if (age >= 17 && age <= 18)
+            {
+                category = "Junior";
+            }
+            else if (age >= 19 && age <= 23)
+            {
+                category = "Młodzieżowiec";
+            }
+            else if (age >= 24 && age <= 120)
+            {
+                category = "Senior";
+            }
+            else
+            {
+                category = "Nieznana category"; 
+            }
+
+            return category;
         }
     }
     public class CustomStructure
@@ -86,13 +127,15 @@ namespace CompetitionScraper
         public Dictionary<string, List<string>> StringList { get; set; }
         public int Number { get; set; }
         public Dictionary<string, Dictionary<string, string>> Date { get; set; }
+        public string Age  { get; set; }
 
-        public CustomStructure(string text, Dictionary<string, List<string>> stringList, int number, Dictionary<string, Dictionary<string, string>> date)
+        public CustomStructure(string text, Dictionary<string, List<string>> stringList, int number, Dictionary<string, Dictionary<string, string>> date, string age)
         {
             Text = text;
             StringList = stringList;
             Number = number;
             Date = date;
+            Age = age;
         }
     }
 

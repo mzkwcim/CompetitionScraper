@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,8 +59,46 @@ namespace CompetitionScraper
                 ws.Range($"A1:{excelChar}1").Merge();
                 ws.Range($"A2:{excelChar}2").Merge();
                 ws.Range($"B3:{excelChar}3").Merge();
-                var range = ws.Range($"A1:{excelChar}100");
+                int counter = 8;
+                int athleteCounter = 1;
+                int innerAdder = 0;
+                foreach (var athlete in list)
+                {
+                    ws.Cell($"A{counter}").Value = athleteCounter;
+                    ws.Cell($"B{counter}").Value = athlete.Text;
+                    ws.Cell($"C{counter}").Value = athlete.Age;
+                    foreach (var competition in athlete.StringList)
+                    {
+                        foreach (IXLColumn column in ws.ColumnsUsed())
+                        {
+                            if (column.CellsUsed().Any(cell => cell.Value.ToString() == competition.Key))
+                            {
+                                int collumnNumber = column.ColumnNumber();
+                                foreach(var swimmingEvent in competition.Value)
+                                {
+                                    ws.Cell($"{DataFormatingSystem.NumberToExcelColumn(collumnNumber)}{counter + innerAdder}").Value = 1;
+                                    ws.Cell($"{DataFormatingSystem.NumberToExcelColumn(collumnNumber + 1)}{counter + innerAdder}").Value = String.Join(" ",swimmingEvent.Split(" ")[3..]);
+                                    ws.Cell($"{DataFormatingSystem.NumberToExcelColumn(collumnNumber + 2)}{counter + innerAdder}").Value = Convert.ToInt32(swimmingEvent.Split(" ")[0]);
+                                    innerAdder++;
+                                }
+                                innerAdder = 0;
+                            }
+                        }
+                    }
+                    counter += athlete.Number;
+                    athleteCounter++;
+                }
+                var range = ws.Range($"A1:{excelChar}{counter}");
                 range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                range.Style.Alignment.WrapText = true;
+                ws.RangeUsed().Style.Border.TopBorder = XLBorderStyleValues.Thin;
+                ws.RangeUsed().Style.Border.BottomBorder = XLBorderStyleValues.Thin;
+                ws.RangeUsed().Style.Border.LeftBorder = XLBorderStyleValues.Thin;
+                ws.RangeUsed().Style.Border.RightBorder = XLBorderStyleValues.Thin;
+                ws.Columns().AdjustToContents(); // Dostosuj szerokość wszystkich kolumn
+                ws.Rows().AdjustToContents();
+
 
 
                 wb.SaveAs(filePath);
