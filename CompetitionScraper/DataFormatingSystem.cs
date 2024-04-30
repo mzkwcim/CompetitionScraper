@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CompetitionScraper
+﻿namespace CompetitionScraper
 {
     internal class DataFormatingSystem
     {
@@ -71,28 +65,20 @@ namespace CompetitionScraper
 
             return columnName;
         }
-        string DodajLitere(string litera, int liczba)
+
+        public static string Category(int birthDate)
         {
-            // Konwertowanie litery na kod znaku
-            int pierwszaCzesc = (int)litera[0] - 'A' + 1;
-            int drugaCzesc = (int)litera[1] - 'A' + 1;
-
-            // Dodanie liczby do kodu znaku
-            drugaCzesc += liczba;
-
-            // Przesunięcie drugiej części, jeśli przekroczy 'Z'
-            if (drugaCzesc > 26)
+            int age = DateTime.Today.Year - birthDate;
+            switch (age)
             {
-                pierwszaCzesc += (drugaCzesc - 1) / 26;
-                drugaCzesc = (drugaCzesc - 1) % 26 + 1;
+                case int n when (n >= 0 && n <= 11): return "Dziecko";
+                case int n when (n >= 12 && n <= 13): return "Młodzik";
+                case int n when (n >= 14 && n <= 16): return "Junior Młodszy";
+                case int n when (n >= 17 && n <= 18): return "Junior";
+                case int n when (n >= 19 && n <= 23): return "Młodzieżowiec";
+                case int n when (n >= 24 && n <= 120): return "Senior";
+                default: return "Nieznana category";
             }
-
-            // Konwersja na litery
-            string pierwszaLitera = ((char)('A' + (pierwszaCzesc - 1))).ToString();
-            string drugaLitera = ((char)('A' + (drugaCzesc - 1))).ToString();
-
-            // Zwrócenie wyniku
-            return pierwszaLitera + drugaLitera;
         }
     }
 }
