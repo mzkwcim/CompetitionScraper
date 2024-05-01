@@ -4,7 +4,7 @@ namespace CompetitionScraper
 {
     internal class ExcelCreatingSystem
     {
-        private static string filePath = @"$home\desktop\testwyniki.xlsx";
+        private static string filePath = @"C:\users\mzkwcim\desktop\testwyniki.xlsx";
         internal void CreatExcelWoorkbook()
         {
             ListManager listManager = new ListManager();

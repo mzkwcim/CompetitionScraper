@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 namespace CompetitionScraper
 {
@@ -6,12 +7,21 @@ namespace CompetitionScraper
     {
         internal List<CustomStructure> GetList()
         {
-            DictionaryManager dictionaryManager = new DictionaryManager();
+            AtleteListGeneratingSystem dictionaryManager = new AtleteListGeneratingSystem();
+            Stopwatch sw = Stopwatch.StartNew();
+            sw.Start();
             Dictionary<string, string> swimmers = dictionaryManager.GetUrls();
+            sw.Stop();
+            Console.WriteLine($"Zakończono działanie stopera: {sw.Elapsed.Seconds:F3}s");
+            foreach (var (key, value) in swimmers) 
+            {
+                Console.WriteLine(key + " " + value);
+            }
+            
             List<CustomStructure> test = new List<CustomStructure>();
             List<string> helperStringList = new List<string>();
             string liveTimingPrefix = "https://www.swimrankings.net/index.php";
-            foreach (var swimmer in swimmers)
+            Parallel.ForEach(swimmers, swimmer =>
             {
                 Dictionary<string, int> maximumNumberOfStartsOnCompetition = new Dictionary<string, int>();
                 Dictionary<string, List<string>> listOfStartsOnCompetition = new Dictionary<string, List<string>>();
@@ -72,12 +82,17 @@ namespace CompetitionScraper
                         }
                     }
                 }
-                if (listOfStartsOnCompetition.Count > 0)
+                lock (test)
                 {
-                    CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(swimmer.Key), listOfStartsOnCompetition, maximumNumberOfStartsOnCompetition.Values.Max(), competitionCityAndDate, category);
-                    test.Add(cs);
-                }
-            }
+                    if (listOfStartsOnCompetition.Count > 0)
+                    {
+                        CustomStructure cs = new CustomStructure(DataFormatingSystem.ToTitleString(swimmer.Key), listOfStartsOnCompetition, maximumNumberOfStartsOnCompetition.Values.Max(), competitionCityAndDate, category);
+                        test.Add(cs);
+                    }
+                }   
+            });
+            test = test.AsParallel().OrderBy(x => x.AthleteName).ToList();   
+
             return test;
         }
     }
