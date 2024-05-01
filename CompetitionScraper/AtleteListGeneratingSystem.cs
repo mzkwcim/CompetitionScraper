@@ -9,42 +9,49 @@ namespace CompetitionScraper
             List<string> athletesCategories = ["agegroup=12012", "agegroup=13013", "agegroup=14014", "agegroup=15015", "agegroup=16016", "agegroup=17017", "agegroup=18018", "agegroup=19000", "agegroup=0"];
             List<string> genderList = ["gender=1", "gender=2"];
             List<string> poolLength = ["course=LCM", "course=SCM"];
-            string link = "https://www.swimrankings.net/index.php?page=rankingDetail&clubId=65773&gender=1&season=2024&course=LCM&stroke=0&agegroup=13013";
-            string swimrankingsPrefix = "https://www.swimrankings.net/index.php";
-            Dictionary<string, string> swimmers = new Dictionary<string, string>();
-            Parallel.ForEach(athletesCategories, athlete =>
+            ClubUrlGettingSystem clubUrlGettingSystem = new ClubUrlGettingSystem();
+            string link = clubUrlGettingSystem.GetClubName();
+            if (link == null)
             {
-                for (int j = 0; j < 2; j++)
+                return null;
+            }
+            else
+            {
+                string swimrankingsPrefix = "https://www.swimrankings.net/index.php";
+                Dictionary<string, string> swimmers = new Dictionary<string, string>();
+                Parallel.ForEach(athletesCategories, athlete =>
                 {
-                    for (int i = 0; i < 2; i++)
+                    for (int j = 0; j < 2; j++)
                     {
-                        string changedLink = link.Replace("course=LCM", $"{poolLength[i]}").Replace("gender=1", $"{genderList[j]}").Replace("agegroup=13013", $"{athlete}");
-                        var links = ScrapingSystem.Loader(changedLink).DocumentNode.SelectNodes("//td[@class='swimstyle']//a");
-                        Parallel.ForEach(links, (linky) =>
+                        for (int i = 0; i < 2; i++)
                         {
-                            var athletes = ScrapingSystem.Loader((swimrankingsPrefix + linky.GetAttributeValue("href", "")).Replace("amp;", ""))
-                                                          .DocumentNode.SelectNodes("//td[@class='fullname']//a");
-
-                            if (athletes != null)
+                            string changedLink = link.Replace("course=LCM", $"{poolLength[i]}").Replace("gender=1", $"{genderList[j]}").Replace("agegroup=13013", $"{athlete}");
+                            var links = ScrapingSystem.Loader(changedLink).DocumentNode.SelectNodes("//td[@class='swimstyle']//a");
+                            Parallel.ForEach(links, (linky) =>
                             {
-                                foreach (var athlete in athletes)
+                                var athletes = ScrapingSystem.Loader((swimrankingsPrefix + linky.GetAttributeValue("href", "")).Replace("amp;", ""))
+                                                              .DocumentNode.SelectNodes("//td[@class='fullname']//a");
+
+                                if (athletes != null)
                                 {
-                                    lock (swimmers)
+                                    foreach (var athlete in athletes)
                                     {
-                                        if (!swimmers.ContainsKey(athlete.InnerText))
+                                        lock (swimmers)
                                         {
-                                            swimmers.Add(athlete.InnerText, (swimrankingsPrefix + athlete.GetAttributeValue("href", "")).Replace("amp;", ""));
+                                            if (!swimmers.ContainsKey(athlete.InnerText))
+                                            {
+                                                swimmers.Add(athlete.InnerText, (swimrankingsPrefix + athlete.GetAttributeValue("href", "")).Replace("amp;", ""));
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
-                }
-            });
-           
-
-            return swimmers;
+                });
+                return swimmers;
+            }
+            
         }
     }
 }

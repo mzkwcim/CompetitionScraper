@@ -54,7 +54,6 @@
         public static string NumberToExcelColumn(int columnNumber)
         {
             string columnName = "";
-
             while (columnNumber > 0)
             {
                 int remainder = (columnNumber - 1) % 26;
@@ -62,7 +61,6 @@
                 columnName = letter + columnName;
                 columnNumber = (columnNumber - 1) / 26;
             }
-
             return columnName;
         }
 
