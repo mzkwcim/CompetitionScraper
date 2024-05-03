@@ -40,8 +40,9 @@ namespace CompetitionScraper
                 var first = ScrapingSystem.Loader(url).DocumentNode.SelectSingleNode("//td//a");
                 string urlPrefix = "https://www.swimrankings.net/index.php?page=rankingDetail&clubId=";
                 string clubId = Regex.Replace(first.GetAttributeValue("href", ""), @"^.+clubId=|&.+", "");
-                string urlSufix = "&gender=1&course=SCM&agegroup=13013&language=pl";
+                string urlSufix = "&gender=1&course=SCM&agegroup=0";
                 string newUrl = $"{urlPrefix}{clubId}{urlSufix}";
+
                 return newUrl;
             }
         }

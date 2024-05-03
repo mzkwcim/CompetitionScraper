@@ -4,11 +4,12 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
+
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         ExcelCreatingSystem excelCreatingSystem = new ExcelCreatingSystem();
         excelCreatingSystem.CreatExcelWoorkbook();
-        stopwatch.Stop();
-        Console.WriteLine($"czas wykonania: {stopwatch.Elapsed.TotalSeconds:F3} s");
+        sw.Stop();
+        Console.WriteLine(sw.Elapsed.Seconds);
     }
 }

@@ -4,7 +4,7 @@
     {
         public static string ToTitleString(string fullname)
         {
-            string[] words = fullname.Split(' ');
+            string[] words = fullname.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < words.Length; i++)
             {
                 words[i] = char.ToUpper(words[i][0]) + words[i][1..].ToLower();

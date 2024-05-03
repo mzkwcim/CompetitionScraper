@@ -4,11 +4,21 @@ namespace CompetitionScraper
 {
     internal class ExcelCreatingSystem
     {
-        private static string filePath = @"C:\users\mzkwcim\desktop\testwyniki.xlsx";
         internal void CreatExcelWoorkbook()
         {
+            string filePath = $"C:\\users\\{Environment.UserName}\\desktop\\plikwynikowy.xlsx";
+            ClubUrlGettingSystem club = new ClubUrlGettingSystem();
+            string clubUrl = null;
+            do
+            {
+                clubUrl = club.GetClubName();
+            } while (clubUrl == null);
             ListManager listManager = new ListManager();
-            List<CustomStructure> swimmersList = listManager.GetList();
+            List<CustomStructure> swimmersList = listManager.GetList(clubUrl);
+            Console.WriteLine(clubUrl);
+            var clubName = ScrapingSystem.Loader(clubUrl).DocumentNode.SelectSingleNode("//td[@class='titleLeft']").InnerText;
+            Console.WriteLine(clubName);
+
             if (swimmersList == null)
             {
                 Console.WriteLine("podałeś niepoprawny klub idę sobie");
@@ -26,7 +36,7 @@ namespace CompetitionScraper
                     woorkSheet.Range("B4:B7").Merge();
                     woorkSheet.Range("C4:C7").Merge();
                     woorkSheet.Cell("A1").Value = $"UCZESTNICTWO W ZAWODACH OBJĘTYCH SYSTEMEM WSPÓŁZAWODNICTWA SPORTOWEGO W {DateTime.Today.Year} ROKU";
-                    woorkSheet.Cell("A2").Value = "Nazwa klubu: KS POSNANIA";
+                    woorkSheet.Cell("A2").Value = $"Nazwa klubu: {DataFormatingSystem.ToTitleString(clubName)}";
                     woorkSheet.Cell("A3").Value = "Dyscyplina: PŁYWANIE";
                     int startCollumn = 4;
                     foreach (var swimmer in swimmersList)
