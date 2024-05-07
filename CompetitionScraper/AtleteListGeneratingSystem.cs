@@ -47,7 +47,7 @@ namespace CompetitionScraper
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(html);
 
-            var page = htmlDocument.DocumentNode.SelectNodes("//td[@class='navigation']")?[9]?.InnerText?
+            var page = htmlDocument.DocumentNode.SelectNodes("//td[@class='navigation']")[9].InnerText
                 .Split(" ");
 
             if (page != null && page.Length > 0 && double.TryParse(page[page.Length - 1], out double lastPage))

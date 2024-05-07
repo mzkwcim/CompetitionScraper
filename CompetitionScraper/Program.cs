@@ -10,6 +10,6 @@ internal class Program
         ExcelCreatingSystem excelCreatingSystem = new ExcelCreatingSystem();
         excelCreatingSystem.CreatExcelWoorkbook();
         sw.Stop();
-        Console.WriteLine(sw.Elapsed.Milliseconds);
+        Console.WriteLine(sw.ElapsedMilliseconds);
     }
 }
