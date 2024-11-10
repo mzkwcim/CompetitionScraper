@@ -13,22 +13,24 @@ namespace CompetitionScraper
             List<CustomStructure> test = new List<CustomStructure>();
             List<string> helperStringList = new List<string>();
             string liveTimingPrefix = "https://www.swimrankings.net/index.php";
+
+            var pageCache = new ConcurrentDictionary<string, HtmlAgilityPack.HtmlDocument>();
             Parallel.ForEach(swimmers, swimmer =>
             {
                 string swimmerName = swimmer.Key;
                 Dictionary<string, int> maximumNumberOfStartsOnCompetition = new Dictionary<string, int>();
                 Dictionary<string, List<string>> listOfStartsOnCompetition = new Dictionary<string, List<string>>();
                 Dictionary<string, Dictionary<string, string>> competitionCityAndDate = new Dictionary<string, Dictionary<string, string>>();
-                var baseNode = ScrapingSystem.Loader(swimmer.Value);
+                var baseNode = GetPageFromCache(swimmer.Value, pageCache);
                 var rawAge = baseNode.DocumentNode.SelectSingleNode("//div[@id='athleteinfo']/div[@id='name']").InnerText;
                 System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(rawAge, @"\((\d{4})");
                 int ageToPass = Convert.ToInt32(match.Groups[1].Value.Trim());
-                Console.WriteLine(ageToPass);
                 string category = DataFormatingSystem.Category(ageToPass);
                 var distances = baseNode.DocumentNode.SelectNodes("//td[@class='event']//a");
                 foreach (var distance in distances)
                 {
-                    var livetimingNode = ScrapingSystem.Loader(liveTimingPrefix + distance.GetAttributeValue("href", "").Replace("amp;", ""));
+                    string distanceUrl = liveTimingPrefix + distance.GetAttributeValue("href", "").Replace("amp;", "");
+                    var livetimingNode = GetPageFromCache(distanceUrl, pageCache);
                     var events = livetimingNode.DocumentNode.SelectNodes("//a[@class='time']");
                     var dates = livetimingNode.DocumentNode.SelectNodes("//td[@class='date']");
                     var cities = livetimingNode.DocumentNode.SelectNodes("//td[@class='city']//a");
@@ -36,15 +38,18 @@ namespace CompetitionScraper
                     {
                         if (dates[e].InnerText.Split("&nbsp;")[2] == "2024")
                         {
-                            var eventNode = ScrapingSystem.Loader((liveTimingPrefix + events[e].GetAttributeValue("href", "")).Replace("amp;", ""));
+                            string eventUrl = liveTimingPrefix + events[e].GetAttributeValue("href", "").Replace("amp;", "");
+                            var eventNode = GetPageFromCache(eventUrl, pageCache);
                             var swimmingDistance = eventNode.DocumentNode.SelectNodes("//td")[13].InnerText;
                             if (!swimmingDistance.Contains("Lap"))
                             {
                                 var competitionName = eventNode.DocumentNode.SelectNodes("//td[@class='h4']//a")[1];
                                 string competitionNameString = competitionName.InnerText;
-                                var competitionDate = ScrapingSystem.Loader((liveTimingPrefix + competitionName.GetAttributeValue("href", "")).Replace("amp;", "")).DocumentNode.SelectNodes("//td[@class='titleRight']")[1];
+                                string competitionUrl = liveTimingPrefix + competitionName.GetAttributeValue("href", "").Replace("amp;", "");
+                                var competitionDateNode = GetPageFromCache(competitionUrl, pageCache)
+                                    .DocumentNode.SelectNodes("//td[@class='titleRight']")[1];
                                 var place = eventNode.DocumentNode.SelectNodes("//td")[15].InnerText;
-                                if (!place.Contains("Relay") && !place.Contains("Split"))
+                                if (!place.Contains("Relay") && !place.Contains("Split") && !place.Contains("EXH"))
                                 {
                                     StringBuilder placeTaken = new StringBuilder();
                                     foreach (char c in place)
@@ -56,7 +61,7 @@ namespace CompetitionScraper
                                         placeTaken.Append(c);
                                     }
                                     string translatedStroke = DataFormatingSystem.TranslateStroke(swimmingDistance);
-                                    string translatedDate = DataFormatingSystem.DateTranslation(competitionDate.InnerText);
+                                    string translatedDate = DataFormatingSystem.DateTranslation(competitionDateNode.InnerText);
                                     string line = $"{swimmerName} {placeTaken} miejsce na {translatedStroke} " +
                                                   $"{competitionNameString} dnia {translatedDate}";
                                     if (!helperStringList.Contains(line))
@@ -102,6 +107,11 @@ namespace CompetitionScraper
             test = test.AsParallel().OrderBy(x => x.AthleteName).ToList();
 
             return test;
+        }
+        private HtmlAgilityPack.HtmlDocument GetPageFromCache(string url, ConcurrentDictionary<string, HtmlAgilityPack.HtmlDocument> cache)
+        {
+            // Jeśli strona jest już w cache, zwracamy ją, w przeciwnym razie pobieramy i dodajemy do cache
+            return cache.GetOrAdd(url, u => ScrapingSystem.Loader(u));
         }
     }
 }
